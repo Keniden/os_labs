@@ -1,0 +1,24 @@
+{
+    "files.associations": {
+        "apisetcconv.h": "c",
+        "minwinbase.h": "c",
+        "windows.h": "c",
+        "stdio.h": "c",
+        "array": "c",
+        "*.tcc": "c",
+        "string": "c",
+        "vector": "c",
+        "string_view": "c",
+        "functional": "c",
+        "istream": "c",
+        "limits": "c",
+        "ostream": "c",
+        "span": "c",
+        "streambuf": "c",
+        "tuple": "c",
+        "format": "c",
+        "ratio": "c",
+        "stop_token": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
+}
