@@ -18,7 +18,9 @@
         "tuple": "c",
         "format": "c",
         "ratio": "c",
-        "stop_token": "c"
+        "stop_token": "c",
+        "stdlib.h": "c",
+        "lib_sort.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
