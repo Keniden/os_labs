@@ -27,7 +27,7 @@ typedef struct
 
 sem_t semaphore;
 
-// Функция для инициализации матрицы случайными числами
+
 matrix_t *initialize_matrix(int rows, int cols)
 {
     matrix_t *mat = malloc(sizeof(matrix_t));
@@ -51,7 +51,7 @@ matrix_t *initialize_matrix(int rows, int cols)
         if (mat->data[i] == NULL)
         {
             perror("Failed to allocate memory for matrix columns");
-            // Освобождение ранее выделенной памяти
+            
             for (int k = 0; k < i; k++)
             {
                 free(mat->data[k]);
@@ -68,7 +68,6 @@ matrix_t *initialize_matrix(int rows, int cols)
     return mat;
 }
 
-// Функция для освобождения памяти матрицы
 void free_matrix(matrix_t *mat)
 {
     if (mat == NULL)
@@ -81,7 +80,7 @@ void free_matrix(matrix_t *mat)
     free(mat);
 }
 
-// Функция для вывода матрицы
+
 void print_matrix(matrix_t *mat)
 {
     if (mat == NULL)
@@ -97,7 +96,7 @@ void print_matrix(matrix_t *mat)
     printf("\n");
 }
 
-// Функция для выполнения операции эрозии на одном элементе
+
 float erosion(matrix_t *input, int i, int j)
 {
     float min_val = FLT_MAX;
@@ -117,7 +116,7 @@ float erosion(matrix_t *input, int i, int j)
     return min_val;
 }
 
-// Функция для выполнения операции наращивания на одном элементе
+
 float dilation(matrix_t *input, int i, int j)
 {
     float max_val = -FLT_MAX;
@@ -137,7 +136,7 @@ float dilation(matrix_t *input, int i, int j)
     return max_val;
 }
 
-// Функция, выполняемая потоком для эрозии
+
 void *thread_erosion(void *args)
 {
     thread_args_t *targs = (thread_args_t *)args;
@@ -157,7 +156,7 @@ void *thread_erosion(void *args)
     pthread_exit(NULL);
 }
 
-// Функция, выполняемая потоком для наращивания
+
 void *thread_dilation(void *args)
 {
     thread_args_t *targs = (thread_args_t *)args;
@@ -198,12 +197,12 @@ int main(int argc, char *argv[])
 
     srand(time(NULL));
 
-    // Инициализация матриц A, B и C
+    
     matrix_t *A = initialize_matrix(rows, cols);
     matrix_t *B = initialize_matrix(rows, cols);
     matrix_t *C = initialize_matrix(rows, cols);
 
-    // Инициализация семафора с начальным значением max_threads
+    
     if (sem_init(&semaphore, 0, max_threads) != 0)
     {
         perror("sem_init failed");
@@ -214,17 +213,17 @@ int main(int argc, char *argv[])
     }
 
     struct timespec start_time, end_time;
-    clock_gettime(CLOCK_MONOTONIC, &start_time); // Запись начального времени
+    clock_gettime(CLOCK_MONOTONIC, &start_time); 
 
     for (int k = 0; k < K; k++)
     {
-        // Эрозия: A -> B
+        
         int num_threads = max_threads;
         int rows_per_thread = (rows + num_threads - 1) / num_threads; // Расчет строк на поток
         pthread_t threads[num_threads];
         thread_args_t targs[num_threads];
 
-        // Создание потоков для эрозии
+       
         for (int t = 0; t < num_threads; t++)
         {
             int start_row = t * rows_per_thread;
@@ -239,11 +238,11 @@ int main(int argc, char *argv[])
             targs[t].start_row = start_row;
             targs[t].end_row = end_row;
 
-            sem_wait(&semaphore); // Уменьшение семафора перед созданием потока
+            sem_wait(&semaphore); 
             if (pthread_create(&threads[t], NULL, thread_erosion, &targs[t]) != 0)
             {
                 perror("ошибка создания потока");
-                // Освобождение ресурсов перед выходом
+                
                 for (int i = 0; i < t; i++)
                 {
                     pthread_join(threads[i], NULL);
@@ -256,7 +255,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        // Ожидание завершения всех потоков эрозии
+        
         for (int t = 0; t < num_threads; t++)
         {
             if (targs[t].start_row < rows)
@@ -265,7 +264,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        // Наращивание: B -> C
+        
         for (int t = 0; t < num_threads; t++)
         {
             int start_row = t * rows_per_thread;
@@ -280,11 +279,10 @@ int main(int argc, char *argv[])
             targs[t].start_row = start_row;
             targs[t].end_row = end_row;
 
-            sem_wait(&semaphore); // Уменьшение семафора перед созданием потока
+            sem_wait(&semaphore); 
             if (pthread_create(&threads[t], NULL, thread_dilation, &targs[t]) != 0)
             {
                 perror("ошибка создания потока");
-                // Освобождение ресурсов перед выходом
                 for (int i = 0; i < t; i++)
                 {
                     pthread_join(threads[i], NULL);
@@ -297,7 +295,6 @@ int main(int argc, char *argv[])
             }
         }
 
-        // Ожидание завершения всех потоков наращивания
         for (int t = 0; t < num_threads; t++)
         {
             if (targs[t].start_row < rows)
@@ -306,19 +303,16 @@ int main(int argc, char *argv[])
             }
         }
 
-        // Перекопирование результатов для следующей итерации
         matrix_t *temp = A;
         A = C;
         C = temp;
     }
 
-    clock_gettime(CLOCK_MONOTONIC, &end_time); // Запись конечного времени
+    clock_gettime(CLOCK_MONOTONIC, &end_time); 
 
-    // Расчет времени выполнения
     double elapsed_time = (end_time.tv_sec - start_time.tv_sec);
     elapsed_time += (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
 
-    // Вывод результатов
     printf("Эрозия и наращивание выполнены %d итераций.\n", K);
     printf("Время выполнения: %.6f секунд\n", elapsed_time);
     printf("Число потоков: %d \n", max_threads);
@@ -329,12 +323,11 @@ int main(int argc, char *argv[])
     // printf("Resulting Matrix after Dilation (C):\n");
     // print_matrix(C);
 
-    // Освобождение памяти
     free_matrix(A);
     free_matrix(B);
     free_matrix(C);
 
-    sem_destroy(&semaphore); // Уничтожение семафора
+    sem_destroy(&semaphore); 
 
-    return 0; // Завершение программы успешно
+    return 0; 
 }
